@@ -6,6 +6,7 @@ template<typename T>
 class Vec2_
 {
 public:
+	Vec2_() = default;
 	Vec2_(T x_in, T y_in)
 		:
 		x(x_in),
