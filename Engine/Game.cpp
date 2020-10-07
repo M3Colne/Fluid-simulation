@@ -27,6 +27,18 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
 	gfx( wnd )
 {
+	//Using an intial vector field to test
+	for (int j = 0; j < N; j++)
+	{
+		for (int i = 0; i < N; i++)
+		{
+			const float x = float(i - int(N / 2));
+			const float y = float(j - int(N / 2));
+
+			//Arbitrary 2D function
+			velocity[GetId(i, j)] = Vec2(0.5f*x, y);
+		}
+	}
 }
 
 void Game::Go()
@@ -53,15 +65,15 @@ void Game::UpdateModel()
 
 int Game::GetId(int i, int j)
 {
-	return (j+1) * (n+2) + (i+1);
+	return j * N + i;
 }
 
 void Game::DrawDensity()
 {
 	//Drawing every cell
-	for (int j = 0; j < n; j++)
+	for (int j = 0; j < N; j++)
 	{
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i < N; i++)
 		{
 			const int A = int(j * cellDimension);
 			const int B = int(i * cellDimension);
@@ -83,26 +95,35 @@ void Game::DrawVelocities(bool separated)
 	const float maxDrawnLength = cellDimension / 2.0f;
 	if (separated)
 	{
-		for (int j = 0; j < n; j++)
+		//Finding the max u and v values
+		float maxU = velocity[0].x;
+		float maxV = velocity[0].y;
+		for (int i = 1; i < N * N; i++)
 		{
-			for (int i = 0; i < n; i++)
+			maxU = std::max<float>(velocity[i].x, maxU);
+			maxV = std::max<float>(velocity[i].y, maxV);
+		}
+
+		for (int j = 0; j < N; j++)
+		{
+			for (int i = 0; i < N; i++)
 			{
 				const Vec2 c(cellDimension * i + maxDrawnLength, cellDimension * j + maxDrawnLength);
 				//Horizontal lines
-				gfx.DrawLine(c, c + Vec2(velocity[GetId(i,j)].x, 0.0f) * maxDrawnLength, Colors::Green);
+				gfx.DrawLine(c, c + Vec2(velocity[GetId(i,j)].x, 0.0f) * maxDrawnLength / maxU, Colors::Green);
 				//Vertical lines
-				gfx.DrawLine(c, c + Vec2(0.0f, velocity[GetId(i, j)].y) * maxDrawnLength, Colors::Red);
+				gfx.DrawLine(c, c + Vec2(0.0f, velocity[GetId(i, j)].y) * maxDrawnLength / maxV, Colors::Red);
 			}
 		}
 	}
 	else
 	{
-		for (int j = 0; j < n; j++)
+		for (int j = 0; j < N; j++)
 		{
-			for (int i = 0; i < n; i++)
+			for (int i = 0; i < N; i++)
 			{
 				const Vec2 c(cellDimension * i + maxDrawnLength, cellDimension * j + maxDrawnLength);
-				gfx.DrawLine(c, c + velocity[GetId(i, j)] * maxDrawnLength, Colors::White);
+				gfx.DrawLine(c, c + velocity[GetId(i, j)].GetNormalized() * maxDrawnLength, Colors::White);
 			}
 		}
 	}
@@ -110,5 +131,6 @@ void Game::DrawVelocities(bool separated)
 
 void Game::ComposeFrame()
 {
-	DrawDensity();
+	//DrawDensity();
+	DrawVelocities(true);
 }
