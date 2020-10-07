@@ -97,24 +97,6 @@ public:
 			}
 		}
 	}
-	void DrawRectangle(Vec2 p0, Vec2 p1, Color c)
-	{
-		if (p0.x > p1.x)
-		{
-			std::swap(p0.x, p1.x);
-		}
-		if (p0.y > p1.y)
-		{
-			std::swap(p0.y, p1.y);
-		}
-		for (int j = p0.y; j < p1.y; j++)
-		{
-			for (int i = p0.x; i < p1.x; i++)
-			{
-				PutPixel(i, j, c);
-			}
-		}
-	}
 	~Graphics();
 private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain>				pSwapChain;
