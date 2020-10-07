@@ -45,11 +45,11 @@ private:
 	Graphics gfx;
 	/********************************/
 	/*  User Variables              */
-	static constexpr int n = 80;
-	static constexpr int totalCells = (n + 2) * (n + 2);
-	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(n);
-	float density[totalCells] = {};
-	float prev_density[totalCells] = {};
-	Vec2 velocity[totalCells] = {};
+	static constexpr int n = 41;
+	static constexpr int N = n + 2;
+	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(N);
+	float density[N * N] = {};
+	float prev_density[N * N] = {};
+	Vec2 velocity[N * N] = {};
 	/********************************/
 };
