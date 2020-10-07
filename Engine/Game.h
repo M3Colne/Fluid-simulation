@@ -36,11 +36,18 @@ private:
 	void UpdateModel();
 	/********************************/
 	/*  User Functions              */
+	int GetId(int i, int j);
+	void Draw();
 	/********************************/
 private:
 	MainWindow& wnd;
 	Graphics gfx;
 	/********************************/
 	/*  User Variables              */
+	static constexpr int n = 20;
+	static constexpr int totalCells = (n + 2) * (n + 2);
+	float density[totalCells] = {};
+	float prev_density[totalCells] = {};
+	Vec2 velocity[totalCells] = {};
 	/********************************/
 };

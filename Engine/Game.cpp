@@ -20,6 +20,7 @@
  ******************************************************************************************/
 #include "MainWindow.h"
 #include "Game.h"
+#include <cassert>
 
 Game::Game( MainWindow& wnd )
 	:
@@ -38,8 +39,37 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
+
+}
+
+int Game::GetId(int i, int j)
+{
+	return (j+1) * (n+2) + (i+1);
+}
+
+void Game::Draw()
+{
+	//Drawing every cell
+	const float cellDimension = float(Graphics::ScreenWidth) / float(n);
+	for (int j = 0; j < n; j++)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			const int A = int(j * cellDimension);
+			const int B = int(i * cellDimension);
+			for (int J = A; J < A+cellDimension; J++)
+			{
+				for (int I = B; I < B+cellDimension; I++)
+				{
+					const int id = GetId(i, j);
+					gfx.PutPixel(I, J, Color( char(255 * density[id]), char(255 * density[id]), char(255 * density[id])));
+				}
+			}
+		}
+	}
 }
 
 void Game::ComposeFrame()
 {
+	Draw();
 }
