@@ -51,6 +51,7 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
+	//Density source
 	if (wnd.mouse.LeftIsPressed())
 	{
 		Vec2 mousePos(float(wnd.mouse.GetPosX()), float(wnd.mouse.GetPosY()));
