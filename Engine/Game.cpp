@@ -56,7 +56,7 @@ int Game::GetId(int i, int j)
 	return (j+1) * (n+2) + (i+1);
 }
 
-void Game::Draw()
+void Game::DrawDensity()
 {
 	//Drawing every cell
 	for (int j = 0; j < n; j++)
@@ -77,7 +77,38 @@ void Game::Draw()
 	}
 }
 
+void Game::DrawVelocities(bool separated)
+{
+	//Given that all velocities are normalized we can use this function to draw the vectors
+	const float maxDrawnLength = cellDimension / 2.0f;
+	if (separated)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			for (int i = 0; i < n; i++)
+			{
+				const Vec2 c(cellDimension * i + maxDrawnLength, cellDimension * j + maxDrawnLength);
+				//Horizontal lines
+				gfx.DrawLine(c, c + Vec2(velocity[GetId(i,j)].x, 0.0f) * maxDrawnLength, Colors::Green);
+				//Vertical lines
+				gfx.DrawLine(c, c + Vec2(0.0f, velocity[GetId(i, j)].y) * maxDrawnLength, Colors::Red);
+			}
+		}
+	}
+	else
+	{
+		for (int j = 0; j < n; j++)
+		{
+			for (int i = 0; i < n; i++)
+			{
+				const Vec2 c(cellDimension * i + maxDrawnLength, cellDimension * j + maxDrawnLength);
+				gfx.DrawLine(c, c + velocity[GetId(i, j)] * maxDrawnLength, Colors::White);
+			}
+		}
+	}
+}
+
 void Game::ComposeFrame()
 {
-	Draw();
+	DrawDensity();
 }

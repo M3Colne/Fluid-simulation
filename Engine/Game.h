@@ -37,7 +37,8 @@ private:
 	/********************************/
 	/*  User Functions              */
 	int GetId(int i, int j);
-	void Draw();
+	void DrawDensity();
+	void DrawVelocities(bool separated);
 	/********************************/
 private:
 	MainWindow& wnd;
