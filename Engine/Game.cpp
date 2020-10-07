@@ -39,7 +39,16 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
-
+	if (wnd.mouse.LeftIsPressed())
+	{
+		Vec2 mousePos(float(wnd.mouse.GetPosX()), float(wnd.mouse.GetPosY()));
+		mousePos /= cellDimension;
+		density[GetId(int(mousePos.x), int(mousePos.y))] += 0.1f;
+		if (density[GetId(int(mousePos.x), int(mousePos.y))] > 1.0f)
+		{
+			density[GetId(int(mousePos.x), int(mousePos.y))] = 1.0f;
+		}
+	}
 }
 
 int Game::GetId(int i, int j)
@@ -50,7 +59,6 @@ int Game::GetId(int i, int j)
 void Game::Draw()
 {
 	//Drawing every cell
-	const float cellDimension = float(Graphics::ScreenWidth) / float(n);
 	for (int j = 0; j < n; j++)
 	{
 		for (int i = 0; i < n; i++)

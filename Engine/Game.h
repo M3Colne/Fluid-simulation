@@ -44,8 +44,9 @@ private:
 	Graphics gfx;
 	/********************************/
 	/*  User Variables              */
-	static constexpr int n = 20;
+	static constexpr int n = 80;
 	static constexpr int totalCells = (n + 2) * (n + 2);
+	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(n);
 	float density[totalCells] = {};
 	float prev_density[totalCells] = {};
 	Vec2 velocity[totalCells] = {};
