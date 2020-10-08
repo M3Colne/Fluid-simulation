@@ -27,7 +27,20 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
 	gfx( wnd )
 {
-	//Using an intial vector field to test
+	//Using an initial scalar field to test
+	for (int j = 0; j < N; j++)
+	{
+		for (int i = 0; i < N; i++)
+		{
+			const float x = float(i - int(N / 2));
+			const float y = float(j - int(N / 2));
+
+			//e^(-r^2)
+			density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
+		}
+	}
+
+	//Using an initial vector field to test
 	for (int j = 0; j < N; j++)
 	{
 		for (int i = 0; i < N; i++)
