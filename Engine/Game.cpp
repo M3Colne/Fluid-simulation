@@ -27,8 +27,23 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
 	gfx( wnd )
 {
+	//Initialization
+	const int totalCells = N * N;
+	density = new float[totalCells];
+	prev_density = new float[totalCells];
+	velocity = new Vec2[totalCells];
+	prev_velocity = new Vec2[totalCells];
+
+	for (int i = 0; i < totalCells; i++)
+	{
+		density[i] = 0.0f;
+		prev_density[i] = 0.0f;
+		velocity[i] = Vec2(0.0f, 0.0f);
+		prev_velocity[i] = Vec2(0.0f, 0.0f);
+	}
+
 	//Using an initial scalar field to test
-	for (int j = 0; j < N; j++)
+	/*for (int j = 0; j < N; j++)
 	{
 		for (int i = 0; i < N; i++)
 		{
@@ -37,7 +52,7 @@ Game::Game( MainWindow& wnd )
 
 			prev_density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
 		}
-	}
+	}*/
 
 	//Using an initial vector field to test
 	for (int j = 0; j < N; j++)
@@ -48,9 +63,21 @@ Game::Game( MainWindow& wnd )
 			const float y = float(j - int(N / 2));
 
 			//Arbitrary 2D function
-			velocity[GetId(i, j)] = Vec2(0.5f*x, y);
+			prev_velocity[GetId(i, j)] = Vec2(0.5f*x, y);
 		}
 	}
+}
+
+Game::~Game()
+{
+	delete[] density;
+	density = nullptr;
+	delete[] prev_density;
+	prev_density = nullptr;
+	delete[] velocity;
+	velocity = nullptr;
+	delete[] prev_velocity;
+	prev_velocity = nullptr;
 }
 
 void Game::Go()
@@ -68,7 +95,7 @@ void Game::UpdateModel()
 	//Delta time
 
 	//Material derivative
-	DensitySolver(0.5f, 1.0f, diffRate, DT);
+	DensitySolver(0.5f, 1.0f, diffusionRate, DT);
 	//Velocity derivative
 	//VelocitySolver(dt);
 }
@@ -101,7 +128,7 @@ void Game::DrawDensity()
 
 void Game::DrawVelocities(bool separated)
 {
-	//Given that all velocities are normalized we can use this function to draw the vectors
+	//The vectors lengths are relative to the maximum length, not absolute
 	const float maxDrawnLength = cellDimension / 2.0f;
 	if (separated)
 	{
@@ -139,10 +166,11 @@ void Game::DrawVelocities(bool separated)
 	}
 }
 
-void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffusionRate, float dt)
+void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffRate, float dt)
 {
 	AddDensity(brushAmountPerSec, brushRadius, dt);
-	Diffusion(diffusionRate, dt);
+	Diffusion(diffRate, dt);
+	//std::swap(density, prev_density);
 }
 
 void Game::AddDensity(float AmountPerSec, float radius, float dt)
@@ -178,23 +206,26 @@ void Game::AddDensity(float AmountPerSec, float radius, float dt)
 		{
 			for (int i = xStart; i < xEnd; i++)
 			{
-				if (i * i + j * j <= radiusSq)
+				if ((mousePos.x - i) * (mousePos.x - i) + (mousePos.y - j) * (mousePos.y - j) <= radiusSq)
 				{
+					float test1 = prev_density[GetId(i, j)];
 					prev_density[GetId(i, j)] += dt * AmountPerSec;
+					float test2 = prev_density[GetId(i, j)];
+					bool k = false;
 				}
 			}
 		}
 	}
 }
 
-void Game::Diffusion(float diffusionRate, float dt)
+void Game::Diffusion(float diffRate, float dt)
 {
 	for (int j = 1; j <= n; j++)
 	{
 		for (int i = 1; i <= n; i++)
 		{
 			const int id = GetId(i, j);
-			density[id] = prev_density[id] + dt * diffusionRate *
+			density[id] = prev_density[id] + dt * diffRate *
 				(prev_density[id - 1] + prev_density[id + 1] + prev_density[id + N] + prev_density[id - N] - 4 * prev_density[id]);
 		}
 	}

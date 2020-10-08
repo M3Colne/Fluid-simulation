@@ -31,6 +31,7 @@ public:
 	Game( class MainWindow& wnd );
 	Game( const Game& ) = delete;
 	Game& operator=( const Game& ) = delete;
+	~Game();
 	void Go();
 private:
 	void ComposeFrame();
@@ -53,9 +54,10 @@ private:
 	static constexpr int n = 41;
 	static constexpr int N = n + 2;
 	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(N);
-	float density[N * N] = {};
-	float prev_density[N * N] = {};
-	Vec2 velocity[N * N] = {};
-	static constexpr float diffRate = 0.25f;
+	float* density = nullptr;
+	float* prev_density = nullptr;
+	Vec2* velocity = nullptr;
+	Vec2* prev_velocity = nullptr;
+	static constexpr float diffusionRate = 0.25f;
 	/********************************/
 };
