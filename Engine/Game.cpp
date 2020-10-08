@@ -35,8 +35,7 @@ Game::Game( MainWindow& wnd )
 			const float x = float(i - int(N / 2));
 			const float y = float(j - int(N / 2));
 
-			//e^(-r^2)
-			density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
+			prev_density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
 		}
 	}
 
@@ -68,23 +67,10 @@ void Game::UpdateModel()
 	const float DT = ft.Mark();
 	//Delta time
 
-
-	//Density source
-	if (wnd.mouse.LeftIsPressed())
-	{
-		Vec2 mousePos(float(wnd.mouse.GetPosX()), float(wnd.mouse.GetPosY()));
-		mousePos /= cellDimension;
-		density[GetId(int(mousePos.x), int(mousePos.y))] += DT*0.5f;
-		if (density[GetId(int(mousePos.x), int(mousePos.y))] > 1.0f)
-		{
-			density[GetId(int(mousePos.x), int(mousePos.y))] = 1.0f;
-		}
-	}
-
-	//Add forces
-	//Diffuse
-	//Diffusion();
-	//Move
+	//Material derivative
+	DensitySolver(0.5f, 1.0f, diffRate, DT);
+	//Velocity derivative
+	//VelocitySolver(dt);
 }
 
 int Game::GetId(int i, int j)
@@ -153,25 +139,67 @@ void Game::DrawVelocities(bool separated)
 	}
 }
 
-void Game::Diffusion()
+void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffusionRate, float dt)
+{
+	AddDensity(brushAmountPerSec, brushRadius, dt);
+	Diffusion(diffusionRate, dt);
+}
+
+void Game::AddDensity(float AmountPerSec, float radius, float dt)
+{
+	if (wnd.mouse.LeftIsPressed())
+	{
+		Vec2 mousePos(float(wnd.mouse.GetPosX()), float(wnd.mouse.GetPosY()));
+		mousePos /= cellDimension;
+
+		const float radiusSq = radius * radius;
+		int xStart = int(mousePos.x - radius);
+		int yStart = int(mousePos.y - radius);
+		int xEnd = int(mousePos.x + radius);
+		int yEnd = int(mousePos.y + radius);
+		if (xStart < 0)
+		{
+			xStart = 0;
+		}
+		if (yStart < 0)
+		{
+			yStart = 0;
+		}
+		if (xEnd > N - 1)
+		{
+			xEnd = N - 1;
+		}
+		if (yEnd > N - 1)
+		{
+			yEnd = N - 1;
+		}
+		
+		for (int j = yStart; j < yEnd; j++)
+		{
+			for (int i = xStart; i < xEnd; i++)
+			{
+				if (i * i + j * j <= radiusSq)
+				{
+					prev_density[GetId(i, j)] += dt * AmountPerSec;
+				}
+			}
+		}
+	}
+}
+
+void Game::Diffusion(float diffusionRate, float dt)
 {
 	for (int j = 1; j <= n; j++)
 	{
 		for (int i = 1; i <= n; i++)
 		{
 			const int id = GetId(i, j);
-			if (densityFlag)
-			{
-				density[id] = prev_density[id] + diffusionRate *
-					(prev_density[id - 1] + prev_density[id + 1] + prev_density[id + N] + prev_density[id - N] - 4 * prev_density[id]);
-			}
-			else
-			{
-				prev_density[id] = density[id] + diffusionRate *
-					(density[id - 1] + density[id + 1] + density[id + N] + density[id - N] - 4 * density[id]);
-			}
+			density[id] = prev_density[id] + dt * diffusionRate *
+				(prev_density[id - 1] + prev_density[id + 1] + prev_density[id + N] + prev_density[id - N] - 4 * prev_density[id]);
 		}
 	}
+
+	//SetBound
 }
 
 void Game::ComposeFrame()

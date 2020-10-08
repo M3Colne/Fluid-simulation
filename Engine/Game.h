@@ -40,7 +40,9 @@ private:
 	int GetId(int i, int j);
 	void DrawDensity();
 	void DrawVelocities(bool separated);
-	void Diffusion();
+	void DensitySolver(float brushAmountPerSec, float brushRadius, float diffusionRate, float dt);
+	void AddDensity(float AmountPerSec, float radius, float dt);
+	void Diffusion(float diffusionRate, float dt);
 	/********************************/
 private:
 	MainWindow& wnd;
@@ -51,10 +53,9 @@ private:
 	static constexpr int n = 41;
 	static constexpr int N = n + 2;
 	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(N);
-	bool densityFlag = true;
 	float density[N * N] = {};
 	float prev_density[N * N] = {};
 	Vec2 velocity[N * N] = {};
-	static constexpr float diffusionRate = 0.25f;
+	static constexpr float diffRate = 0.25f;
 	/********************************/
 };
