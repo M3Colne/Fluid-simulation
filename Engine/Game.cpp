@@ -208,10 +208,7 @@ void Game::AddDensity(float AmountPerSec, float radius, float dt)
 			{
 				if ((mousePos.x - i) * (mousePos.x - i) + (mousePos.y - j) * (mousePos.y - j) <= radiusSq)
 				{
-					float test1 = prev_density[GetId(i, j)];
-					prev_density[GetId(i, j)] += dt * AmountPerSec;
-					float test2 = prev_density[GetId(i, j)];
-					bool k = false;
+					density[GetId(i, j)] += dt * AmountPerSec;
 				}
 			}
 		}
