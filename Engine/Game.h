@@ -23,6 +23,7 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "Graphics.h"
+#include "FrameTimer.h"
 
 class Game
 {
@@ -39,17 +40,21 @@ private:
 	int GetId(int i, int j);
 	void DrawDensity();
 	void DrawVelocities(bool separated);
+	void Diffusion();
 	/********************************/
 private:
 	MainWindow& wnd;
 	Graphics gfx;
 	/********************************/
 	/*  User Variables              */
+	FrameTimer ft;
 	static constexpr int n = 41;
 	static constexpr int N = n + 2;
 	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(N);
+	bool densityFlag = true;
 	float density[N * N] = {};
 	float prev_density[N * N] = {};
 	Vec2 velocity[N * N] = {};
+	static constexpr float diffusionRate = 0.25f;
 	/********************************/
 };
