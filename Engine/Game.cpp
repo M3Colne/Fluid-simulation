@@ -192,21 +192,21 @@ void Game::AddDensity(float AmountPerSec, float radius, float dt)
 		int yStart = int(mousePos.y - radius);
 		int xEnd = int(mousePos.x + radius);
 		int yEnd = int(mousePos.y + radius);
-		if (xStart < 0)
+		if (xStart < 1)
 		{
-			xStart = 0;
+			xStart = 1;
 		}
-		if (yStart < 0)
+		if (yStart < 1)
 		{
-			yStart = 0;
+			yStart = 1;
 		}
-		if (xEnd > N)
+		if (xEnd > N - 1)
 		{
-			xEnd = N;
+			xEnd = N - 1;
 		}
-		if (yEnd > N)
+		if (yEnd > N - 1)
 		{
-			yEnd = N;
+			yEnd = N - 1;
 		}
 		
 		for (int j = yStart; j < yEnd; j++)
