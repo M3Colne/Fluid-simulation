@@ -43,7 +43,7 @@ Game::Game( MainWindow& wnd )
 	}
 
 	//Using an initial scalar field to test
-	/*for (int j = 0; j < N; j++)
+	for (int j = 0; j < N; j++)
 	{
 		for (int i = 0; i < N; i++)
 		{
@@ -52,7 +52,7 @@ Game::Game( MainWindow& wnd )
 
 			prev_density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
 		}
-	}*/
+	}
 
 	//Using an initial vector field to test
 	for (int j = 0; j < N; j++)
@@ -95,7 +95,7 @@ void Game::UpdateModel()
 	//Delta time
 
 	//Material derivative
-	DensitySolver(0.5f, 1.0f, diffusionRate, DT);
+	DensitySolver(0.5f, 5.0f, diffusionRate, DT);
 	//Velocity derivative
 	//VelocitySolver(dt);
 }
@@ -119,7 +119,12 @@ void Game::DrawDensity()
 				for (int I = B; I < B+cellDimension; I++)
 				{
 					const int id = GetId(i, j);
-					gfx.PutPixel(I, J, Color( char(255 * density[id]), char(255 * density[id]), char(255 * density[id])));
+					int greyScale = 255 * density[id];
+					if (greyScale > 255)
+					{
+						greyScale = 255;
+					}
+					gfx.PutPixel(I, J, greyScale, greyScale, greyScale);
 				}
 			}
 		}
@@ -169,8 +174,9 @@ void Game::DrawVelocities(bool separated)
 void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffRate, float dt)
 {
 	AddDensity(brushAmountPerSec, brushRadius, dt);
+	std::swap(density, prev_density);
 	Diffusion(diffRate, dt);
-	//std::swap(density, prev_density);
+	std::swap(density, prev_density);
 }
 
 void Game::AddDensity(float AmountPerSec, float radius, float dt)
