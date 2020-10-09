@@ -43,16 +43,16 @@ Game::Game( MainWindow& wnd )
 	}
 
 	//Using an initial scalar field to test
-	for (int j = 0; j < N; j++)
+	/*for (int j = 0; j < N; j++)
 	{
 		for (int i = 0; i < N; i++)
 		{
 			const float x = float(i - int(N / 2));
 			const float y = float(j - int(N / 2));
 
-			prev_density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
+			density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
 		}
-	}
+	}*/
 
 	//Using an initial vector field to test
 	for (int j = 0; j < N; j++)
@@ -63,7 +63,7 @@ Game::Game( MainWindow& wnd )
 			const float y = float(j - int(N / 2));
 
 			//Arbitrary 2D function
-			prev_velocity[GetId(i, j)] = Vec2(0.5f*x, y);
+			velocity[GetId(i, j)] = Vec2(0.5f*x, y);
 		}
 	}
 }
@@ -95,7 +95,7 @@ void Game::UpdateModel()
 	//Delta time
 
 	//Material derivative
-	DensitySolver(0.5f, 5.0f, diffusionRate, DT);
+	DensitySolver(1.0f, 3.0, diffusionRate, DT);
 	//Velocity derivative
 	//VelocitySolver(dt);
 }
@@ -119,7 +119,7 @@ void Game::DrawDensity()
 				for (int I = B; I < B+cellDimension; I++)
 				{
 					const int id = GetId(i, j);
-					int greyScale = 255 * density[id];
+					int greyScale = int(255 * density[id]);
 					if (greyScale > 255)
 					{
 						greyScale = 255;
@@ -173,10 +173,11 @@ void Game::DrawVelocities(bool separated)
 
 void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffRate, float dt)
 {
-	AddDensity(brushAmountPerSec, brushRadius, dt);
-	std::swap(density, prev_density);
-	Diffusion(diffRate, dt);
-	std::swap(density, prev_density);
+	AddDensity(brushAmountPerSec, brushRadius + 0.5f, dt);
+	//std::swap(density, prev_density);
+	//Diffusion(density, prev_density, diffRate, dt);
+	//std::swap(density, prev_density);
+	//Advection(density, prev_density);
 }
 
 void Game::AddDensity(float AmountPerSec, float radius, float dt)
@@ -199,13 +200,13 @@ void Game::AddDensity(float AmountPerSec, float radius, float dt)
 		{
 			yStart = 0;
 		}
-		if (xEnd > N - 1)
+		if (xEnd > N)
 		{
-			xEnd = N - 1;
+			xEnd = N;
 		}
-		if (yEnd > N - 1)
+		if (yEnd > N)
 		{
-			yEnd = N - 1;
+			yEnd = N;
 		}
 		
 		for (int j = yStart; j < yEnd; j++)
