@@ -94,10 +94,26 @@ void Game::UpdateModel()
 	const float DT = ft.Mark();
 	//Delta time
 
+	if (wnd.kbd.KeyIsPressed(VK_SPACE))
+	{
+		if (pauseInhib)
+		{
+			pause = !pause;
+			pauseInhib = false;
+		}
+	}
+	else
+	{
+		pauseInhib = true;
+	}
+
 	//Material derivative
-	DensitySolver(DPS, brushRadius, diffusionRate, DT);
-	//Velocity derivative
-	//VelocitySolver(dt);
+	if (!pause)
+	{
+		DensitySolver(DPS, brushRadius, diffusionRate, DT);
+		//Velocity derivative
+		//VelocitySolver(dt);
+	}
 }
 
 int Game::GetId(int i, int j)
