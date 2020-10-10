@@ -94,6 +94,7 @@ void Game::UpdateModel()
 	const float DT = ft.Mark();
 	//Delta time
 
+	//Pause
 	if (wnd.kbd.KeyIsPressed(VK_SPACE))
 	{
 		if (pauseInhib)
