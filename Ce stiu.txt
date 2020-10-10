@@ -1,4 +1,0 @@
-Advectie = Cea facut The coding train in episodul "Flow Field" sau pe scurt, "As the fluid moves around, it will transport the scalar field with it. We say that the scalar field is advected by the fluid"
-Convectie = "The advection of velocity through the velocity field is called convection"
-Diffuzie = amestecare campului scalar
-Gradientul presiunii = Lichidele merg de la presiune mare la presiune mica ==> -grad(p)   // - pt ca de la mare la mic

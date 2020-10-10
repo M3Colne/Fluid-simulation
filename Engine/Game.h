@@ -51,7 +51,7 @@ private:
 	/********************************/
 	/*  User Variables              */
 	FrameTimer ft;
-	static constexpr int n = 41;
+	static constexpr int n = 80;
 	static constexpr int N = n + 2;
 	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(N);
 	float* density = nullptr;
@@ -60,7 +60,6 @@ private:
 	Vec2* prev_velocity = nullptr;
 	static constexpr float diffusionRate = 1.0f;
 	static constexpr float DPS = 1.0f;
-	static constexpr float brushRadius = 1.0f;
-	//test
+	static constexpr float brushRadius = 2.5f;
 	/********************************/
 };

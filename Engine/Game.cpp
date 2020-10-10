@@ -43,9 +43,9 @@ Game::Game( MainWindow& wnd )
 	}
 
 	//Using an initial scalar field to test
-	for (int j = 0; j < N; j++)
+	for (int j = 1; j < N-1; j++)
 	{
-		for (int i = 0; i < N; i++)
+		for (int i = 1; i < N-1; i++)
 		{
 			const float x = float(i - int(N / 2));
 			const float y = float(j - int(N / 2));
@@ -225,17 +225,19 @@ void Game::AddDensity(float AmountPerSec, float radius, float dt)
 void Game::Diffusion(float diffRate, float dt)
 {
 	const float a = dt * diffRate;
-	for (int j = 1; j <= n; j++)
+	for (int iteration = 0; iteration < 20; iteration++)
 	{
-		for (int i = 1; i <= n; i++)
+		for (int j = 1; j <= n; j++)
 		{
-			const int id = GetId(i, j);
-			density[id] = prev_density[id] + a *
-				(prev_density[id - 1] + prev_density[id + 1] + prev_density[id + N] + prev_density[id - N] - 4 * prev_density[id]);
+			for (int i = 1; i <= n; i++)
+			{
+				const int id = GetId(i, j);
+				density[id] = (prev_density[id] + a *
+					(density[id - 1] + density[id + 1] + density[id + N] + density[id - N]))/(1+4*a);
+			}
 		}
+		//SetBound
 	}
-
-	//SetBound
 }
 
 void Game::ComposeFrame()

@@ -1,2 +1,3 @@
 Intelege mai bine time step-ul de la "Another CFD document.pdf"
 Nu uita de SetBound pentru tot
+Left click = addDensity, Right click = addVelocity (tin amandoua ca sa pot adauga density si velocity)
