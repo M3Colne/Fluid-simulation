@@ -112,7 +112,6 @@ void Game::UpdateModel()
 	if (!pause)
 	{
 		DensitySolver(DPS, brushRadius, diffusionRate, DT);
-		//Velocity derivative
 		//VelocitySolver(dt);
 	}
 }
@@ -120,6 +119,11 @@ void Game::UpdateModel()
 int Game::GetId(int i, int j)
 {
 	return j * N + i;
+}
+
+float Game::LinearInterpolation(float a, float b, float x)
+{
+	return (1.0f-x)*a + x*b;
 }
 
 void Game::DrawDensity()
@@ -197,6 +201,24 @@ void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffR
 	//Advection(density, prev_density);
 }
 
+void Game::DensityBoundaryCondition()
+{
+	for (int j = 1; j < N - 1; j++)
+	{
+		density[GetId(0, j)] = density[GetId(1, j)];
+		density[GetId(N - 1, j)] = density[GetId(N - 2, j)];
+	}
+	for (int i = 1; i < N - 1; i++)
+	{
+		density[GetId(i, 0)] = density[GetId(i, 1)];
+		density[GetId(i, N - 1)] = density[GetId(i, N - 2)];
+	}
+	density[GetId(0, 0)] = (density[GetId(1, 0)] + density[GetId(0, 1)]) / 2.0f;
+	density[GetId(N-1, 0)] = (density[GetId(N-2, 0)] + density[GetId(N-1, 1)]) / 2.0f;
+	density[GetId(0, N-1)] = (density[GetId(0, N-2)] + density[GetId(1, N-1)]) / 2.0f;
+	density[GetId(N-1, N-1)] = (density[GetId(N-2, N-1)] + density[GetId(N-1, N-2)]) / 2.0f;
+}
+
 void Game::AddDensity(float AmountPerSec, float radius, float dt)
 {
 	if (wnd.mouse.LeftIsPressed())
@@ -253,7 +275,7 @@ void Game::Diffusion(float diffRate, float dt)
 					(density[id - 1] + density[id + 1] + density[id + N] + density[id - N]))/(1+4*a);
 			}
 		}
-		//SetBound
+		DensityBoundaryCondition();
 	}
 }
 

@@ -39,9 +39,11 @@ private:
 	/********************************/
 	/*  User Functions              */
 	int GetId(int i, int j);
+	float LinearInterpolation(float a, float b, float x);
 	void DrawDensity();
 	void DrawVelocities(bool separated);
 	void DensitySolver(float brushAmountPerSec, float brushRadius, float diffusionRate, float dt);
+	void DensityBoundaryCondition();
 	void AddDensity(float AmountPerSec, float radius, float dt);
 	void Diffusion(float diffusionRate, float dt);
 	/********************************/
