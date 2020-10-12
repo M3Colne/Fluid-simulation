@@ -1,3 +1,7 @@
-Intelege mai bine time step-ul de la "Another CFD document.pdf"
-Nu uita de SetBound pentru tot
+Repara DrawVelocity cu separat si neseparat + testeaza folosing functia din update
+Termina advectia
 Left click = addDensity, Right click = addVelocity (tin amandoua ca sa pot adauga density si velocity)
+Incepe Velocity solver-ul(folosesti diffuse si advect exact la fel dar pentru componentele veclocity-ului + proiectie)
+Intelege mai bine time step-ul de la "Another CFD document.pdf"
+Poate chiar folosesc program din "Solving a linear system" in locul proiectiei lui Stam
+Citeste extensiile si aprofundeaza cunostiinte din toate hartiile(Mai degraba citeste, incearca sa experimentezi dar nu prea mult).
