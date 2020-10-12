@@ -154,39 +154,51 @@ void Game::DrawDensity()
 
 void Game::DrawVelocities(bool separated)
 {
-	//The vectors lengths are relative to the maximum length, not absolute
-	const float maxDrawnLength = cellDimension / 2.0f;
-	if (separated)
-	{
-		//Finding the max u and v values
-		float maxU = velocity[0].x;
-		float maxV = velocity[0].y;
-		for (int i = 1; i < N * N; i++)
-		{
-			maxU = std::max<float>(velocity[i].x, maxU);
-			maxV = std::max<float>(velocity[i].y, maxV);
-		}
+	//The velocities colors are relative to the maximum length
+	const float maxLengthDrawn = cellDimension / 2.0f;
+	const float maxLengthDrawnSq = maxLengthDrawn * maxLengthDrawn;
 
-		for (int j = 0; j < N; j++)
-		{
-			for (int i = 0; i < N; i++)
-			{
-				const Vec2 c(cellDimension * i + maxDrawnLength, cellDimension * j + maxDrawnLength);
-				//Horizontal lines
-				gfx.DrawLine(c, c + Vec2(velocity[GetId(i,j)].x, 0.0f) * maxDrawnLength / maxU, Colors::Green);
-				//Vertical lines
-				gfx.DrawLine(c, c + Vec2(0.0f, velocity[GetId(i, j)].y) * maxDrawnLength / maxV, Colors::Red);
-			}
-		}
-	}
-	else
+	for (int j = 0; j < N; j++)
 	{
-		for (int j = 0; j < N; j++)
+		for (int i = 0; i < N; i++)
 		{
-			for (int i = 0; i < N; i++)
+			const Vec2 center(cellDimension * i + maxLengthDrawn, cellDimension * j + maxLengthDrawn);
+			if (separated)
 			{
-				const Vec2 c(cellDimension * i + maxDrawnLength, cellDimension * j + maxDrawnLength);
-				gfx.DrawLine(c, c + velocity[GetId(i, j)].GetNormalized() * maxDrawnLength, Colors::White);
+				const float u = velocity[GetId(i, j)].x;
+				gfx.DrawLine(center, center + Vec2((u > maxLengthDrawn ? maxLengthDrawn : 
+					u < -maxLengthDrawn ? -maxLengthDrawn : u), 0.0f),
+					Colors::Green);
+				const float v = velocity[GetId(i, j)].y;
+				gfx.DrawLine(center, center + Vec2(0.0f, (v > maxLengthDrawn ? maxLengthDrawn :
+					v < -maxLengthDrawn ? -maxLengthDrawn : v)),
+					Colors::Red);
+			}
+			else
+			{
+				const float vel = velocity[GetId(i, j)].GetLengthSq();
+				Color color;
+				if (vel > maxLengthDrawn * maxLengthDrawn)
+				{
+					color = Colors::Red;
+				}
+				else if (vel > maxLengthDrawnSq * 16.0f/25.0f)
+				{
+					color = Colors::Yellow;
+				}
+				else if (vel > maxLengthDrawnSq * 9.0f / 25.0f)
+				{
+					color = Colors::Green;
+				}
+				else if (vel > maxLengthDrawnSq * 4.0f / 25.0f)
+				{
+					color = Colors::Cyan;
+				}
+				else if(vel > maxLengthDrawnSq / 25.0f)
+				{
+					color = Colors::Blue;
+				}
+				gfx.DrawLine(center, center + velocity[GetId(i, j)].GetNormalizedTo(maxLengthDrawn), color);
 			}
 		}
 	}
@@ -281,6 +293,6 @@ void Game::Diffusion(float diffRate, float dt)
 
 void Game::ComposeFrame()
 {
-	DrawDensity();
-	//DrawVelocities(true);
+	//DrawDensity();
+	DrawVelocities(false);
 }
