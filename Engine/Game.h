@@ -46,6 +46,7 @@ private:
 	void DensityBoundaryCondition();
 	void AddDensity(float AmountPerSec, float radius, float dt);
 	void Diffusion(float diffusionRate, float dt);
+	void Advection(float dt);
 	/********************************/
 private:
 	MainWindow& wnd;

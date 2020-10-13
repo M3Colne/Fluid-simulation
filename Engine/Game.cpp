@@ -43,16 +43,16 @@ Game::Game( MainWindow& wnd )
 	}
 
 	//Using an initial scalar field to test
-	for (int j = 1; j < N-1; j++)
-	{
-		for (int i = 1; i < N-1; i++)
-		{
-			const float x = float(i - int(N / 2));
-			const float y = float(j - int(N / 2));
+	//for (int j = 1; j < N-1; j++)
+	//{
+	//	for (int i = 1; i < N-1; i++)
+	//	{
+	//		const float x = float(i - int(N / 2));
+	//		const float y = float(j - int(N / 2));
 
-			density[GetId(i, j)] = pow(2.7186f, -0.1f * Vec2(x, y).GetLengthSq());
-		}
-	}
+	//		density[GetId(i, j)] = pow(2.0f, -1.0f * Vec2(x, y).GetLengthSq());
+	//	}
+	//}
 
 	//Using an initial vector field to test
 	for (int j = 0; j < N; j++)
@@ -63,7 +63,7 @@ Game::Game( MainWindow& wnd )
 			const float y = float(j - int(N / 2));
 
 			//Arbitrary 2D function
-			velocity[GetId(i, j)] = Vec2(0.5f*x, y);
+			velocity[GetId(i, j)] = Vec2(x, y);
 		}
 	}
 }
@@ -209,8 +209,8 @@ void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffR
 	AddDensity(brushAmountPerSec, brushRadius + 0.5f, dt);
 	std::swap(density, prev_density);
 	Diffusion(diffRate, dt);
-	//std::swap(density, prev_density);
-	//Advection(density, prev_density);
+	std::swap(density, prev_density);
+	Advection(dt);
 }
 
 void Game::DensityBoundaryCondition()
@@ -291,8 +291,49 @@ void Game::Diffusion(float diffRate, float dt)
 	}
 }
 
+void Game::Advection(float dt)
+{
+	//Semi-Lagrangian advection (going backwards in time)
+	for (int j = 1; j < N - 1; j++)
+	{
+		for (int i = 1; i < N - 1; i++)
+		{
+			//Going backward in time
+			Vec2 pos(i, j); //Position in a 0-N * 0-N grid
+			pos -= velocity[GetId(i, j)] * dt;
+
+			//Constraints
+			if (pos.x < 0.5f)
+			{
+				pos.x = 0.5f;
+			}
+			else if (pos.x > N + 0.5f)
+			{
+				pos.x = N + 0.5f;
+			}
+			if (pos.y < 0.5f)
+			{
+				pos.y = 0.5f;
+			}
+			else if (pos.y > N + 0.5f)
+			{
+				pos.y = N + 0.5f;
+			}
+
+			//Interpolating the particle density around his 4 neighbors
+			const int nPosX = int(pos.x);
+			const int nPosY = int(pos.y);
+			const float fracY = pos.y - nPosY;
+			const float Y1 = LinearInterpolation(prev_density[GetId(nPosX, nPosY)], prev_density[GetId(nPosX, nPosY + 1)], fracY);
+			const float Y2 = LinearInterpolation(prev_density[GetId(nPosX+1, nPosY)], prev_density[GetId(nPosX+1, nPosY + 1)], fracY);
+			density[GetId(i, j)] = LinearInterpolation(Y1, Y2, pos.x - nPosX);
+		}
+	}
+	DensityBoundaryCondition();
+}
+
 void Game::ComposeFrame()
 {
-	//DrawDensity();
+	DrawDensity();
 	DrawVelocities(false);
 }
