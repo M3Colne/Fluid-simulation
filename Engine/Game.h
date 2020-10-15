@@ -47,6 +47,11 @@ private:
 	void AddDensity(float AmountPerSec, float radius, float dt);
 	void Diffusion(float diffusionRate, float dt);
 	void Advection(float dt);
+	void VelocitySolver(float radius, float dt);
+	void VelocityBoundaryCondition();
+	void AddVelocity(float radius);
+	void Viscosity(float viscosityRate, float dt);
+	void Convection(float dt);
 	/********************************/
 private:
 	MainWindow& wnd;
@@ -54,6 +59,7 @@ private:
 	/********************************/
 	/*  User Variables              */
 	FrameTimer ft;
+	Vei2 prev_mousePos;
 	static constexpr int n = 80;
 	static constexpr int N = n + 2;
 	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(N);

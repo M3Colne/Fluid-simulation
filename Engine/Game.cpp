@@ -28,6 +28,7 @@ Game::Game( MainWindow& wnd )
 	gfx( wnd )
 {
 	//Initialization
+	prev_mousePos = wnd.mouse.GetPos();
 	const int totalCells = N * N;
 	density = new float[totalCells];
 	prev_density = new float[totalCells];
@@ -112,8 +113,11 @@ void Game::UpdateModel()
 	if (!pause)
 	{
 		DensitySolver(DPS, brushRadius, diffusionRate, DT);
-		//VelocitySolver(dt);
+		VelocitySolver(brushRadius, DT);
 	}
+
+	//Updating the mouse position
+	prev_mousePos = wnd.mouse.GetPos();
 }
 
 int Game::GetId(int i, int j)
@@ -299,7 +303,7 @@ void Game::Advection(float dt)
 		for (int i = 1; i < N - 1; i++)
 		{
 			//Going backward in time
-			Vec2 pos(i, j); //Position in a 0-N * 0-N grid
+			Vec2 pos(float(i + 0.5f), float(j + 0.5f)); //Position in a 0-N * 0-N grid
 			pos -= velocity[GetId(i, j)] * dt;
 
 			//Constraints
@@ -330,6 +334,28 @@ void Game::Advection(float dt)
 		}
 	}
 	DensityBoundaryCondition();
+}
+
+void Game::VelocitySolver(float radius, float dt)
+{
+	//AddVelocity(radius, )
+}
+
+void Game::VelocityBoundaryCondition()
+{
+}
+
+void Game::AddVelocity(float radius)
+{
+	
+}
+
+void Game::Viscosity(float viscosityRate, float dt)
+{
+}
+
+void Game::Convection(float dt)
+{
 }
 
 void Game::ComposeFrame()
