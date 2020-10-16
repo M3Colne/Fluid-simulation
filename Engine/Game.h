@@ -47,9 +47,9 @@ private:
 	void AddDensity(float AmountPerSec, float radius, float dt);
 	void Diffusion(float diffusionRate, float dt);
 	void Advection(float dt);
-	void VelocitySolver(float radius, float dt);
+	void VelocitySolver(float scalar, float brushRadius, float viscRate, float dt);
 	void VelocityBoundaryCondition();
-	void AddVelocity(float radius);
+	void AddVelocity(float scalar, float radius);
 	void Viscosity(float viscosityRate, float dt);
 	void Convection(float dt);
 	/********************************/
@@ -60,7 +60,7 @@ private:
 	/*  User Variables              */
 	FrameTimer ft;
 	Vei2 prev_mousePos;
-	static constexpr int n = 80;
+	static constexpr int n = 40;
 	static constexpr int N = n + 2;
 	static constexpr float cellDimension = float(Graphics::ScreenWidth) / float(N);
 	float* density = nullptr;
@@ -69,6 +69,8 @@ private:
 	Vec2* prev_velocity = nullptr;
 	static constexpr float diffusionRate = 10.0f;
 	static constexpr float DPS = 1.0f;
+	static constexpr float viscosityRate = 1.0f;
+	static constexpr float velocityScalar = 0.75f;
 	static constexpr float brushRadius = 2.5f;
 	bool pause = false;
 	bool pauseInhib = true;

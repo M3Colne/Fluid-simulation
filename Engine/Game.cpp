@@ -44,29 +44,29 @@ Game::Game( MainWindow& wnd )
 	}
 
 	//Using an initial scalar field to test
-	//for (int j = 1; j < N-1; j++)
-	//{
-	//	for (int i = 1; i < N-1; i++)
-	//	{
-	//		const float x = float(i - int(N / 2));
-	//		const float y = float(j - int(N / 2));
-
-	//		density[GetId(i, j)] = pow(2.0f, -1.0f * Vec2(x, y).GetLengthSq());
-	//	}
-	//}
-
-	//Using an initial vector field to test
-	for (int j = 0; j < N; j++)
+	/*for (int j = 1; j < N-1; j++)
 	{
-		for (int i = 0; i < N; i++)
+		for (int i = 1; i < N-1; i++)
 		{
 			const float x = float(i - int(N / 2));
 			const float y = float(j - int(N / 2));
 
-			//Arbitrary 2D function
-			velocity[GetId(i, j)] = Vec2(x, y);
+			density[GetId(i, j)] = pow(2.0f, -1.0f * Vec2(x, y).GetLengthSq());
 		}
-	}
+	}*/
+
+	//Using an initial vector field to test
+	//for (int j = 0; j < N; j++)
+	//{
+	//	for (int i = 0; i < N; i++)
+	//	{
+	//		const float x = float(i - int(N / 2));
+	//		const float y = float(j - int(N / 2));
+
+	//		//Arbitrary 2D function
+	//		velocity[GetId(i, j)] = Vec2(x, y);
+	//	}
+	//}
 }
 
 Game::~Game()
@@ -109,11 +109,13 @@ void Game::UpdateModel()
 		pauseInhib = true;
 	}
 
-	//Material derivative
+	//Navier-Stoke equations for mass and velocity
 	if (!pause)
 	{
+		//This is the material derivative
 		DensitySolver(DPS, brushRadius, diffusionRate, DT);
-		VelocitySolver(brushRadius, DT);
+		//This is the Navier-Stokes equation for velocity
+		VelocitySolver(velocityScalar, brushRadius, viscosityRate, DT);
 	}
 
 	//Updating the mouse position
@@ -217,6 +219,17 @@ void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffR
 	Advection(dt);
 }
 
+void Game::VelocitySolver(float scalar, float brushRadius, float viscRate, float dt)
+{
+	AddVelocity(scalar, brushRadius + 0.5f);
+	std::swap(velocity, prev_velocity);
+	Viscosity(viscRate, dt);
+	////Maybe another project comes here because it says it may work better
+	//std::swap(velocity, prev_velocity);
+	//Convection(dt);
+	////PressureProject();
+}
+
 void Game::DensityBoundaryCondition()
 {
 	for (int j = 1; j < N - 1; j++)
@@ -233,6 +246,24 @@ void Game::DensityBoundaryCondition()
 	density[GetId(N-1, 0)] = (density[GetId(N-2, 0)] + density[GetId(N-1, 1)]) / 2.0f;
 	density[GetId(0, N-1)] = (density[GetId(0, N-2)] + density[GetId(1, N-1)]) / 2.0f;
 	density[GetId(N-1, N-1)] = (density[GetId(N-2, N-1)] + density[GetId(N-1, N-2)]) / 2.0f;
+}
+
+void Game::VelocityBoundaryCondition()
+{
+	for (int j = 1; j < N - 1; j++)
+	{
+		velocity[GetId(0, j)] = velocity[GetId(1, j)] * -1;
+		velocity[GetId(N - 1, j)] = velocity[GetId(N - 2, j)] * -1;
+	}
+	for (int i = 1; i < N - 1; i++)
+	{
+		velocity[GetId(i, 0)] = velocity[GetId(i, 1)] * -1;
+		velocity[GetId(i, N - 1)] = velocity[GetId(i, N - 2)] * -1;
+	}
+	velocity[GetId(0, 0)] = (velocity[GetId(1, 0)] + velocity[GetId(0, 1)]) / 2.0f;
+	velocity[GetId(N - 1, 0)] = (velocity[GetId(N - 2, 0)] + velocity[GetId(N - 1, 1)]) / 2.0f;
+	velocity[GetId(0, N - 1)] = (velocity[GetId(0, N - 2)] + velocity[GetId(1, N - 1)]) / 2.0f;
+	velocity[GetId(N - 1, N - 1)] = (velocity[GetId(N - 2, N - 1)] + velocity[GetId(N - 1, N - 2)]) / 2.0f;
 }
 
 void Game::AddDensity(float AmountPerSec, float radius, float dt)
@@ -277,6 +308,50 @@ void Game::AddDensity(float AmountPerSec, float radius, float dt)
 	}
 }
 
+void Game::AddVelocity(float scalar, float radius)
+{
+	if (wnd.mouse.RightIsPressed())
+	{
+		Vec2 mousePos(float(wnd.mouse.GetPosX()), float(wnd.mouse.GetPosY()));
+		mousePos /= cellDimension;
+
+		const float radiusSq = radius * radius;
+		int xStart = int(mousePos.x - radius);
+		int yStart = int(mousePos.y - radius);
+		int xEnd = int(mousePos.x + radius);
+		int yEnd = int(mousePos.y + radius);
+		if (xStart < 1)
+		{
+			xStart = 1;
+		}
+		if (yStart < 1)
+		{
+			yStart = 1;
+		}
+		if (xEnd > N - 1)
+		{
+			xEnd = N - 1;
+		}
+		if (yEnd > N - 1)
+		{
+			yEnd = N - 1;
+		}
+
+		Vec2 mouseTimeDiff = mousePos - Vec2(float(prev_mousePos.x), float(prev_mousePos.y))/cellDimension;
+
+		for (int j = yStart; j < yEnd; j++)
+		{
+			for (int i = xStart; i < xEnd; i++)
+			{
+				if ((mousePos.x - i) * (mousePos.x - i) + (mousePos.y - j) * (mousePos.y - j) <= radiusSq)
+				{
+					velocity[GetId(i, j)] += mouseTimeDiff * scalar;
+				}
+			}
+		}
+	}
+}
+
 void Game::Diffusion(float diffRate, float dt)
 {
 	const float a = dt * diffRate;
@@ -292,6 +367,24 @@ void Game::Diffusion(float diffRate, float dt)
 			}
 		}
 		DensityBoundaryCondition();
+	}
+}
+
+void Game::Viscosity(float viscosityRate, float dt)
+{
+	const float a = dt * viscosityRate;
+	for (int iteration = 0; iteration < 20; iteration++)
+	{
+		for (int j = 1; j <= n; j++)
+		{
+			for (int i = 1; i <= n; i++)
+			{
+				const int id = GetId(i, j);
+				velocity[id] = (prev_velocity[id] +	
+					(velocity[id - 1] + velocity[id + 1] + velocity[id + N] + velocity[id - N]) * a) / (1 + 4 * a);
+			}
+		}
+		VelocityBoundaryCondition();
 	}
 }
 
@@ -336,30 +429,52 @@ void Game::Advection(float dt)
 	DensityBoundaryCondition();
 }
 
-void Game::VelocitySolver(float radius, float dt)
-{
-	//AddVelocity(radius, )
-}
-
-void Game::VelocityBoundaryCondition()
-{
-}
-
-void Game::AddVelocity(float radius)
-{
-	
-}
-
-void Game::Viscosity(float viscosityRate, float dt)
-{
-}
-
 void Game::Convection(float dt)
 {
+	//Semi-Lagrangian advection (going backwards in time)
+	for (int j = 1; j < N - 1; j++)
+	{
+		for (int i = 1; i < N - 1; i++)
+		{
+			//Going backward in time
+			Vec2 pos(float(i + 0.5f), float(j + 0.5f)); //Position in a 0-N * 0-N grid
+			pos -= velocity[GetId(i, j)] * dt;
+
+			//Constraints
+			if (pos.x < 0.5f)
+			{
+				pos.x = 0.5f;
+			}
+			else if (pos.x > N + 0.5f)
+			{
+				pos.x = N + 0.5f;
+			}
+			if (pos.y < 0.5f)
+			{
+				pos.y = 0.5f;
+			}
+			else if (pos.y > N + 0.5f)
+			{
+				pos.y = N + 0.5f;
+			}
+
+			//Interpolating the particle density around his 4 neighbors
+			const int nPosX = int(pos.x);
+			const int nPosY = int(pos.y);
+			const float fracY = pos.y - nPosY;
+			const float Y1 = LinearInterpolation(prev_velocity[GetId(nPosX, nPosY)].x, prev_velocity[GetId(nPosX, nPosY + 1)].x, fracY);
+			const float Y2 = LinearInterpolation(prev_velocity[GetId(nPosX + 1, nPosY)].x, prev_velocity[GetId(nPosX + 1, nPosY + 1)].x, fracY);
+			velocity[GetId(i, j)].x = LinearInterpolation(Y1, Y2, pos.x - nPosX);
+			const float Y3 = LinearInterpolation(prev_velocity[GetId(nPosX, nPosY)].y, prev_velocity[GetId(nPosX, nPosY + 1)].y, fracY);
+			const float Y4 = LinearInterpolation(prev_velocity[GetId(nPosX + 1, nPosY)].y, prev_velocity[GetId(nPosX + 1, nPosY + 1)].y, fracY);
+			velocity[GetId(i, j)].y = LinearInterpolation(Y3, Y4, pos.x - nPosX);
+		}
+	}
+	VelocityBoundaryCondition();
 }
 
 void Game::ComposeFrame()
 {
-	DrawDensity();
+	//DrawDensity();
 	DrawVelocities(false);
 }
