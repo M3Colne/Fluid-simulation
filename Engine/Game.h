@@ -71,7 +71,9 @@ private:
 	static constexpr float DPS = 10.0f;
 	static constexpr float viscosityRate = 1.0f;
 	static constexpr float velocityScalar = 2.0f;
-	static constexpr float brushRadius = 0.5f;
+	static constexpr float brushRadius = 1.5f;
+	static constexpr float minDensity = 0.001f;
+	static constexpr float minVelocitySq = 0.25f * 0.25f;
 	bool pause = false;
 	bool pauseInhib = true;
 	/********************************/

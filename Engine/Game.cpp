@@ -116,6 +116,14 @@ void Game::UpdateModel()
 		DensitySolver(DPS, brushRadius, diffusionRate, DT);
 		//This is the Navier-Stokes equation for velocity
 		VelocitySolver(velocityScalar, brushRadius, viscosityRate, DT);
+
+		//This is to prevent having too small values like 0.0001 for density and velocity
+		for (int i = 0; i < N * N; i++)
+		{
+			const float d = density[i];
+			density[i] = d < minDensity ? 0.0f : d;
+			velocity[i] = velocity[i].GetLengthSq() < minVelocitySq ? Vec2(0.0f, 0.0f) : velocity[i];
+		}
 	}
 
 	//Updating the mouse position
@@ -186,21 +194,25 @@ void Game::DrawVelocities(bool separated)
 				Color color;
 				if (vel > maxLengthDrawn * maxLengthDrawn)
 				{
-					color = Colors::Red;
+					color = Colors::Magenta;
 				}
 				else if (vel > maxLengthDrawnSq * 16.0f/25.0f)
 				{
-					color = Colors::Yellow;
+					color = Colors::Red;
 				}
 				else if (vel > maxLengthDrawnSq * 9.0f / 25.0f)
 				{
-					color = Colors::Green;
+					color = Colors::Yellow;
 				}
 				else if (vel > maxLengthDrawnSq * 4.0f / 25.0f)
 				{
-					color = Colors::Cyan;
+					color = Colors::Green;
 				}
 				else if(vel > maxLengthDrawnSq / 25.0f)
+				{
+					color = Colors::Cyan;
+				}
+				else
 				{
 					color = Colors::Blue;
 				}
