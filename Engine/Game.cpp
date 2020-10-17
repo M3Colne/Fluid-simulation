@@ -234,11 +234,11 @@ void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffR
 void Game::VelocitySolver(float scalar, float brushRadius, float viscRate, float dt)
 {
 	AddVelocity(scalar, brushRadius + 0.5f);
-	std::swap(velocity, prev_velocity);
-	Viscosity(viscRate, dt);
-	////Maybe another project comes here because it says it may work better
 	//std::swap(velocity, prev_velocity);
-	//Convection(dt);
+	//Viscosity(viscRate, dt);
+	////Maybe another project comes here because it says it may work better
+	std::swap(velocity, prev_velocity);
+	Convection(dt);
 	////PressureProject();
 }
 
@@ -445,30 +445,31 @@ void Game::Advection(float dt)
 void Game::Convection(float dt)
 {
 	//Semi-Lagrangian advection (going backwards in time)
-	for (int j = 1; j < N - 1; j++)
+	for (float j = 1; j <= n; j++)
 	{
-		for (int i = 1; i < N - 1; i++)
+		for (float i = 1; i <= n; i++)
 		{
 			//Going backward in time
-			Vec2 pos(float(i + 0.5f), float(j + 0.5f)); //Position in a 0-N * 0-N grid
-			pos -= velocity[GetId(i, j)] * dt;
+			const int id = GetId(float(i), float(j));
+			Vec2 pos(i, j); //Position in a 0-N * 0-N grid
+			pos -= velocity[id] * dt;
 
 			//Constraints
-			if (pos.x < 0.5f)
+			if (pos.x < 0.0f)
 			{
-				pos.x = 0.5f;
+				pos.x = 0.0f;
 			}
-			else if (pos.x > N + 0.5f)
+			else if (pos.x > N)
 			{
-				pos.x = N + 0.5f;
+				pos.x = N;
 			}
-			if (pos.y < 0.5f)
+			if (pos.y < 0.0f)
 			{
-				pos.y = 0.5f;
+				pos.y = 0.0f;
 			}
-			else if (pos.y > N + 0.5f)
+			else if (pos.y > N)
 			{
-				pos.y = N + 0.5f;
+				pos.y = N;
 			}
 
 			//Interpolating the particle density around his 4 neighbors
@@ -477,10 +478,10 @@ void Game::Convection(float dt)
 			const float fracY = pos.y - nPosY;
 			const float Y1 = LinearInterpolation(prev_velocity[GetId(nPosX, nPosY)].x, prev_velocity[GetId(nPosX, nPosY + 1)].x, fracY);
 			const float Y2 = LinearInterpolation(prev_velocity[GetId(nPosX + 1, nPosY)].x, prev_velocity[GetId(nPosX + 1, nPosY + 1)].x, fracY);
-			velocity[GetId(i, j)].x = LinearInterpolation(Y1, Y2, pos.x - nPosX);
+			velocity[id].x = LinearInterpolation(Y1, Y2, pos.x - nPosX);
 			const float Y3 = LinearInterpolation(prev_velocity[GetId(nPosX, nPosY)].y, prev_velocity[GetId(nPosX, nPosY + 1)].y, fracY);
 			const float Y4 = LinearInterpolation(prev_velocity[GetId(nPosX + 1, nPosY)].y, prev_velocity[GetId(nPosX + 1, nPosY + 1)].y, fracY);
-			velocity[GetId(i, j)].y = LinearInterpolation(Y3, Y4, pos.x - nPosX);
+			velocity[id].y = LinearInterpolation(Y3, Y4, pos.x - nPosX);
 		}
 	}
 	VelocityBoundaryCondition();
