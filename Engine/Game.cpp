@@ -213,8 +213,8 @@ void Game::DrawVelocities(bool separated)
 void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffRate, float dt)
 {
 	AddDensity(brushAmountPerSec, brushRadius + 0.5f, dt);
-	std::swap(density, prev_density);
-	Diffusion(diffRate, dt);
+	//std::swap(density, prev_density);
+	//Diffusion(diffRate, dt);
 	std::swap(density, prev_density);
 	Advection(dt);
 }
@@ -222,8 +222,8 @@ void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffR
 void Game::VelocitySolver(float scalar, float brushRadius, float viscRate, float dt)
 {
 	AddVelocity(scalar, brushRadius + 0.5f);
-	std::swap(velocity, prev_velocity);
-	Viscosity(viscRate, dt);
+	//std::swap(velocity, prev_velocity);
+	//Viscosity(viscRate, dt);
 	////Maybe another project comes here because it says it may work better
 	//std::swap(velocity, prev_velocity);
 	//Convection(dt);
@@ -475,6 +475,6 @@ void Game::Convection(float dt)
 
 void Game::ComposeFrame()
 {
-	//DrawDensity();
+	DrawDensity();
 	DrawVelocities(false);
 }
