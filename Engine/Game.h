@@ -67,11 +67,11 @@ private:
 	float* prev_density = nullptr;
 	Vec2* velocity = nullptr;
 	Vec2* prev_velocity = nullptr;
-	static constexpr float diffusionRate = 10.0f;
-	static constexpr float DPS = 1.0f;
+	static constexpr float diffusionRate = 1.0f;
+	static constexpr float DPS = 10.0f;
 	static constexpr float viscosityRate = 1.0f;
-	static constexpr float velocityScalar = 0.75f;
-	static constexpr float brushRadius = 2.5f;
+	static constexpr float velocityScalar = 2.0f;
+	static constexpr float brushRadius = 0.5f;
 	bool pause = false;
 	bool pauseInhib = true;
 	/********************************/

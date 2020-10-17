@@ -213,8 +213,8 @@ void Game::DrawVelocities(bool separated)
 void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffRate, float dt)
 {
 	AddDensity(brushAmountPerSec, brushRadius + 0.5f, dt);
-	//std::swap(density, prev_density);
-	//Diffusion(diffRate, dt);
+	std::swap(density, prev_density);
+	Diffusion(diffRate, dt);
 	std::swap(density, prev_density);
 	Advection(dt);
 }
@@ -222,8 +222,8 @@ void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffR
 void Game::VelocitySolver(float scalar, float brushRadius, float viscRate, float dt)
 {
 	AddVelocity(scalar, brushRadius + 0.5f);
-	//std::swap(velocity, prev_velocity);
-	//Viscosity(viscRate, dt);
+	std::swap(velocity, prev_velocity);
+	Viscosity(viscRate, dt);
 	////Maybe another project comes here because it says it may work better
 	//std::swap(velocity, prev_velocity);
 	//Convection(dt);
@@ -391,30 +391,31 @@ void Game::Viscosity(float viscosityRate, float dt)
 void Game::Advection(float dt)
 {
 	//Semi-Lagrangian advection (going backwards in time)
-	for (int j = 1; j < N - 1; j++)
+	for (float j = 1.0f; j <= n; j++)
 	{
-		for (int i = 1; i < N - 1; i++)
+		for (float i = 1.0f; i <= n; i++)
 		{
 			//Going backward in time
-			Vec2 pos(float(i + 0.5f), float(j + 0.5f)); //Position in a 0-N * 0-N grid
-			pos -= velocity[GetId(i, j)] * dt;
+			Vec2 pos(i, j); //Position in a 1-n * 1-n grid
+							//Also, it should be pos(float(i+0.5f), float(j+0.5f)) but for some reason it's buggy
+			pos -= velocity[GetId(int(i), int(j))] * dt;
 
 			//Constraints
-			if (pos.x < 0.5f)
+			if (pos.x < 0.0f)
 			{
-				pos.x = 0.5f;
+				pos.x = 0.0f;
 			}
-			else if (pos.x > N + 0.5f)
+			else if (pos.x > N)
 			{
-				pos.x = N + 0.5f;
+				pos.x = float(N);
 			}
-			if (pos.y < 0.5f)
+			if (pos.y < 0.0f)
 			{
-				pos.y = 0.5f;
+				pos.y = 0.0f;
 			}
-			else if (pos.y > N + 0.5f)
+			else if (pos.y > N)
 			{
-				pos.y = N + 0.5f;
+				pos.y = float(N);
 			}
 
 			//Interpolating the particle density around his 4 neighbors
@@ -423,7 +424,7 @@ void Game::Advection(float dt)
 			const float fracY = pos.y - nPosY;
 			const float Y1 = LinearInterpolation(prev_density[GetId(nPosX, nPosY)], prev_density[GetId(nPosX, nPosY + 1)], fracY);
 			const float Y2 = LinearInterpolation(prev_density[GetId(nPosX+1, nPosY)], prev_density[GetId(nPosX+1, nPosY + 1)], fracY);
-			density[GetId(i, j)] = LinearInterpolation(Y1, Y2, pos.x - nPosX);
+			density[GetId(int(i), int(j))] = LinearInterpolation(Y1, Y2, pos.x - nPosX);
 		}
 	}
 	DensityBoundaryCondition();
