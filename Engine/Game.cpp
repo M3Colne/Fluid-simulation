@@ -234,12 +234,12 @@ void Game::DensitySolver(float brushAmountPerSec, float brushRadius, float diffR
 void Game::VelocitySolver(float scalar, float brushRadius, float viscRate, float dt)
 {
 	AddVelocity(scalar, brushRadius + 0.5f);
-	//std::swap(velocity, prev_velocity);
-	//Viscosity(viscRate, dt);
+	std::swap(velocity, prev_velocity);
+	Viscosity(viscRate, dt);
 	////Maybe another project comes here because it says it may work better
 	std::swap(velocity, prev_velocity);
 	Convection(dt);
-	////PressureProject();
+	PressureProjection();
 }
 
 void Game::DensityBoundaryCondition()
@@ -264,13 +264,13 @@ void Game::VelocityBoundaryCondition()
 {
 	for (int j = 1; j < N - 1; j++)
 	{
-		velocity[GetId(0, j)] = velocity[GetId(1, j)] * -1;
-		velocity[GetId(N - 1, j)] = velocity[GetId(N - 2, j)] * -1;
+		velocity[GetId(0, j)].x = velocity[GetId(1, j)].x * -1;
+		velocity[GetId(N - 1, j)].x = velocity[GetId(N - 2, j)].x * -1;
 	}
 	for (int i = 1; i < N - 1; i++)
 	{
-		velocity[GetId(i, 0)] = velocity[GetId(i, 1)] * -1;
-		velocity[GetId(i, N - 1)] = velocity[GetId(i, N - 2)] * -1;
+		velocity[GetId(i, 0)].y = velocity[GetId(i, 1)].y * -1;
+		velocity[GetId(i, N - 1)].y = velocity[GetId(i, N - 2)].y * -1;
 	}
 	velocity[GetId(0, 0)] = (velocity[GetId(1, 0)] + velocity[GetId(0, 1)]) / 2.0f;
 	velocity[GetId(N - 1, 0)] = (velocity[GetId(N - 2, 0)] + velocity[GetId(N - 1, 1)]) / 2.0f;
@@ -450,7 +450,7 @@ void Game::Convection(float dt)
 		for (float i = 1; i <= n; i++)
 		{
 			//Going backward in time
-			const int id = GetId(float(i), float(j));
+			const int id = GetId(int(i), int(j));
 			Vec2 pos(i, j); //Position in a 0-N * 0-N grid
 			pos -= velocity[id] * dt;
 
@@ -482,6 +482,101 @@ void Game::Convection(float dt)
 			const float Y3 = LinearInterpolation(prev_velocity[GetId(nPosX, nPosY)].y, prev_velocity[GetId(nPosX, nPosY + 1)].y, fracY);
 			const float Y4 = LinearInterpolation(prev_velocity[GetId(nPosX + 1, nPosY)].y, prev_velocity[GetId(nPosX + 1, nPosY + 1)].y, fracY);
 			velocity[id].y = LinearInterpolation(Y3, Y4, pos.x - nPosX);
+		}
+	}
+	VelocityBoundaryCondition();
+}
+
+void Game::PressureProjection()
+{
+	//Using Stam's pressure solver
+	//I believe he is using an iterative solver called Gauss-Seidel relaxation to obtain the pressure
+
+	//Observation:
+	//The prev_velocity.y is supposed to hold the divergence values for each cell
+	//The prev_velocity.x is supposed to hold the pressure values for each cell
+
+	//Divergence and initializing the pressure
+	for (int j = 1; j <= n; j++)
+	{
+		for (int i = 1; i <= n; i++)
+		{
+			prev_velocity[GetId(i, j)].y = -0.5f * (velocity[GetId(i + 1, j)].x - velocity[GetId(i - 1, j)].x +
+				velocity[GetId(i, j + 1)].y - velocity[GetId(i, j - 1)].y);
+			prev_velocity[GetId(i, j)].x = 0.0f;
+		}
+	}
+
+	//Divergence and pressure boundary condition
+	{
+		//Vertical boundaries
+		for (int j = 0; j < N; j++)
+		{
+			//Divergence
+			prev_velocity[GetId(0, j)].y = prev_velocity[GetId(1, j)].y;
+			prev_velocity[GetId(N - 1, j)].y = prev_velocity[GetId(N - 2, j)].y;
+			//Pressure
+			prev_velocity[GetId(0, j)].x = 0.0f;
+			prev_velocity[GetId(N - 1, j)].x = 0.0f;
+		}
+		//Horizontal boundaries
+		for (int i = 0; i < N; i++)
+		{
+			//Divergence
+			prev_velocity[GetId(i, 0)].y = prev_velocity[GetId(i, 1)].y;
+			prev_velocity[GetId(i, N - 1)].y = prev_velocity[GetId(i, N - 2)].y;
+			//Pressure
+			prev_velocity[GetId(i, 0)].x = 0.0f;
+			prev_velocity[GetId(i, N - 1)].x = 0.0f;
+		}
+		//Corners
+		prev_velocity[GetId(0, 0)] = (prev_velocity[GetId(1, 0)] + prev_velocity[GetId(0, 1)]) / 2.0f;
+		prev_velocity[GetId(N - 1, 0)] = (prev_velocity[GetId(N - 2, 0)] + prev_velocity[GetId(N - 1, 1)]) / 2.0f;
+		prev_velocity[GetId(0, N - 1)] = (prev_velocity[GetId(0, N - 2)] + prev_velocity[GetId(1, N - 1)]) / 2.0f;
+		prev_velocity[GetId(N - 1, N - 1)] = (prev_velocity[GetId(N - 2, N - 1)] + prev_velocity[GetId(N - 1, N - 2)]) / 2.0f;
+	}
+
+	//Pressure solving
+	{
+		for (int k = 0; k < 20; k++)
+		{
+			for (int j = 1; j <= n; j++)
+			{
+				for (int i = 1; i <= n; i++)
+				{
+					prev_velocity[GetId(i, j)].x = (prev_velocity[GetId(i, j)].y + prev_velocity[GetId(i + 1, j)].x + prev_velocity[GetId(i - 1, j)].x +
+						prev_velocity[GetId(i, j + 1)].x + prev_velocity[GetId(i, j - 1)].x) / 4;
+				}
+			}
+
+			//Pressure boundary condition
+			//Vertical boundaries
+			for (int j = 0; j < N; j++)
+			{
+				prev_velocity[GetId(0, j)].x = 0.0f;
+				prev_velocity[GetId(N - 1, j)].x = 0.0f;
+			}
+			//Horizontal boundaries
+			for (int i = 0; i < N; i++)
+			{
+				prev_velocity[GetId(i, 0)].x = 0.0f;
+				prev_velocity[GetId(i, N - 1)].x = 0.0f;
+			}
+			//Corners
+			prev_velocity[GetId(0, 0)].x = (prev_velocity[GetId(1, 0)].x + prev_velocity[GetId(0, 1)].x) / 2.0f;
+			prev_velocity[GetId(N - 1, 0)].x = (prev_velocity[GetId(N - 2, 0)].x + prev_velocity[GetId(N - 1, 1)].x) / 2.0f;
+			prev_velocity[GetId(0, N - 1)].x = (prev_velocity[GetId(0, N - 2)].x + prev_velocity[GetId(1, N - 1)].x) / 2.0f;
+			prev_velocity[GetId(N - 1, N - 1)].x = (prev_velocity[GetId(N - 2, N - 1)].x + prev_velocity[GetId(N - 1, N - 2)].x) / 2.0f;
+		}
+	}
+
+	//Using pressure to correct the velocities
+	for (int j = 1; j <= n; j++)
+	{
+		for (int i = 1; i <= n; i++)
+		{
+			velocity[GetId(i, j)].x -= 0.5f * (prev_velocity[GetId(i + 1, j)].x - prev_velocity[GetId(i - 1, j)].x);
+			velocity[GetId(i, j)].y -= 0.5f * (prev_velocity[GetId(i, j + 1)].x - prev_velocity[GetId(i, j - 1)].x);
 		}
 	}
 	VelocityBoundaryCondition();

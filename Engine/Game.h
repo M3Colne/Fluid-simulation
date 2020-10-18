@@ -52,6 +52,7 @@ private:
 	void AddVelocity(float scalar, float radius);
 	void Viscosity(float viscosityRate, float dt);
 	void Convection(float dt);
+	void PressureProjection();
 	/********************************/
 private:
 	MainWindow& wnd;
