@@ -41,7 +41,7 @@ private:
 	int GetId(int i, int j);
 	float LinearInterpolation(float a, float b, float x);
 	void DrawDensity();
-	void DrawVelocities(bool separated);
+	void DrawVelocities();
 	void DensitySolver(float brushAmountPerSec, float brushRadius, float diffusionRate, float dt);
 	void DensityBoundaryCondition();
 	void AddDensity(float AmountPerSec, float radius, float dt);
@@ -77,5 +77,9 @@ private:
 	static constexpr float minVelocitySq = 0.25f * 0.25f;
 	bool pause = false;
 	bool pauseInhib = true;
+	bool drawD = true;
+	bool drawDInhib = true;
+	bool drawV = false;
+	bool drawVInhib = true;
 	/********************************/
 };

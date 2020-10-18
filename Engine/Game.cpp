@@ -95,8 +95,19 @@ void Game::UpdateModel()
 	const float DT = ft.Mark();
 	//Delta time
 
+	//Reset
+	if (wnd.kbd.KeyIsPressed('R'))
+	{
+		for (int i = 0; i < N * N; i++)
+		{
+			density[i] = 0.0f;
+			velocity[i].x = 0.0f;
+			velocity[i].y = 0.0f;
+		}
+	}
+
 	//Pause
-	if (wnd.kbd.KeyIsPressed(VK_SPACE))
+	if (wnd.kbd.KeyIsPressed('P'))
 	{
 		if (pauseInhib)
 		{
@@ -166,7 +177,7 @@ void Game::DrawDensity()
 	}
 }
 
-void Game::DrawVelocities(bool separated)
+void Game::DrawVelocities()
 {
 	//The velocities colors are relative to the maximum length
 	const float maxLengthDrawn = cellDimension / 2.0f;
@@ -177,47 +188,34 @@ void Game::DrawVelocities(bool separated)
 		for (int i = 0; i < N; i++)
 		{
 			const Vec2 center(cellDimension * i + maxLengthDrawn, cellDimension * j + maxLengthDrawn);
-			if (separated)
+
+			const float vel = velocity[GetId(i, j)].GetLengthSq();
+			Color color;
+			if (vel > maxLengthDrawn * maxLengthDrawn)
 			{
-				const float u = velocity[GetId(i, j)].x;
-				gfx.DrawLine(center, center + Vec2((u > maxLengthDrawn ? maxLengthDrawn : 
-					u < -maxLengthDrawn ? -maxLengthDrawn : u), 0.0f),
-					Colors::Green);
-				const float v = velocity[GetId(i, j)].y;
-				gfx.DrawLine(center, center + Vec2(0.0f, (v > maxLengthDrawn ? maxLengthDrawn :
-					v < -maxLengthDrawn ? -maxLengthDrawn : v)),
-					Colors::Red);
+				color = Colors::Magenta;
+			}
+			else if (vel > maxLengthDrawnSq * 16.0f / 25.0f)
+			{
+				color = Colors::Red;
+			}
+			else if (vel > maxLengthDrawnSq * 9.0f / 25.0f)
+			{
+				color = Colors::Yellow;
+			}
+			else if (vel > maxLengthDrawnSq * 4.0f / 25.0f)
+			{
+				color = Colors::Green;
+			}
+			else if (vel > maxLengthDrawnSq / 25.0f)
+			{
+				color = Colors::Cyan;
 			}
 			else
 			{
-				const float vel = velocity[GetId(i, j)].GetLengthSq();
-				Color color;
-				if (vel > maxLengthDrawn * maxLengthDrawn)
-				{
-					color = Colors::Magenta;
-				}
-				else if (vel > maxLengthDrawnSq * 16.0f/25.0f)
-				{
-					color = Colors::Red;
-				}
-				else if (vel > maxLengthDrawnSq * 9.0f / 25.0f)
-				{
-					color = Colors::Yellow;
-				}
-				else if (vel > maxLengthDrawnSq * 4.0f / 25.0f)
-				{
-					color = Colors::Green;
-				}
-				else if(vel > maxLengthDrawnSq / 25.0f)
-				{
-					color = Colors::Cyan;
-				}
-				else
-				{
-					color = Colors::Blue;
-				}
-				gfx.DrawLine(center, center + velocity[GetId(i, j)].GetNormalizedTo(maxLengthDrawn), color);
+				color = Colors::Blue;
 			}
+			gfx.DrawLine(center, center + velocity[GetId(i, j)].GetNormalizedTo(maxLengthDrawn), color);
 		}
 	}
 }
@@ -402,6 +400,7 @@ void Game::Viscosity(float viscosityRate, float dt)
 
 void Game::Advection(float dt)
 {
+	//Simple Backwards Euler
 	//Semi-Lagrangian advection (going backwards in time)
 	for (float j = 1.0f; j <= n; j++)
 	{
@@ -444,6 +443,7 @@ void Game::Advection(float dt)
 
 void Game::Convection(float dt)
 {
+	//Simple Backwards Euler
 	//Semi-Lagrangian advection (going backwards in time)
 	for (float j = 1; j <= n; j++)
 	{
@@ -584,6 +584,37 @@ void Game::PressureProjection()
 
 void Game::ComposeFrame()
 {
-	DrawDensity();
-	DrawVelocities(false);
+	if (wnd.kbd.KeyIsPressed('D'))
+	{
+		if (drawDInhib)
+		{
+			drawD = !drawD;
+			drawDInhib = false;
+		}
+	}
+	else
+	{
+		drawDInhib = true;
+	}
+	if (drawD)
+	{
+		DrawDensity();
+	}
+
+	if (wnd.kbd.KeyIsPressed('V'))
+	{
+		if (drawVInhib)
+		{
+			drawV = !drawV;
+			drawVInhib = false;
+		}
+	}
+	else
+	{
+		drawVInhib = true;
+	}
+	if (drawV)
+	{
+		DrawVelocities();
+	}
 }
